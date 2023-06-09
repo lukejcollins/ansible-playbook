@@ -14,3 +14,8 @@
       become: yes
       become_user: lukecollins
 
+    - name: Change GTK to dark mode
+      command: >
+        gsettings set org.gnome.desktop.interface gtk-theme Adwaita-dark
+      become_user: lukecollins
+
