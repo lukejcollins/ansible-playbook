@@ -19,3 +19,15 @@
         gsettings set org.gnome.desktop.interface gtk-theme Adwaita-dark
       become_user: lukecollins
 
+    - name: Install Tidal
+      command: >
+        flatpak install -y flathub com.mastermindzh.tidal-hifi
+      become: yes
+      become_user: lukecollins
+
+    - name: Set Timezone
+      command: >
+        timedatectl set-timezone Europe/London
+      become: yes
+      become_user: lukecollins
+
