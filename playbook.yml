@@ -5,24 +5,19 @@
     - name: Add Flathub repository
       command: >
         flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-      become: yes
-      become_user: lukecollins
 
     - name: Install Google Chrome
       command: >
         flatpak install -y flathub com.google.Chrome
-      become: yes
-      become_user: lukecollins
 
     - name: Install Tidal
       command: >
         flatpak install -y flathub com.mastermindzh.tidal-hifi
-      become: yes
-      become_user: lukecollins
 
     - name: Set Timezone
       command: >
         timedatectl set-timezone Europe/London
-      become: yes
-      become_user: lukecollins
 
+    - name: Install Boxes
+      command: >
+        flatpak install -y org.gnome.Boxes
