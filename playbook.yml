@@ -31,3 +31,9 @@
       command: >
         git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
       when: not powerlevel10k_directory.stat.exists
+
+    - name: Change default shell of user
+      become: yes
+      user:
+        name: "{{ lookup('env','USER') }}"
+        shell: /usr/bin/zsh
