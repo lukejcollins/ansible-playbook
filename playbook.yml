@@ -21,3 +21,13 @@
     - name: Install Boxes
       command: >
         flatpak install -y org.gnome.Boxes
+    
+    - name: Check if powerlevel10k directory exists
+      stat:
+        path: "~/powerlevel10k"
+      register: powerlevel10k_directory
+
+    - name: Install powerlevel10k
+      command: >
+        git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
+      when: not powerlevel10k_directory.stat.exists
