@@ -71,6 +71,6 @@
 
     - name: Print message to hit hotkeys
       ansible.builtin.debug:
-        msg: "Now hit mod+shift+c"
+        msg: "Now logout and log back in"
       when: font_cache_rebuilt is changed
 
