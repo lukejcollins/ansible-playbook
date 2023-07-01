@@ -37,3 +37,40 @@
       user:
         name: "{{ lookup('env','USER') }}"
         shell: /usr/bin/zsh
+
+    - name: Check if the fonts directory exists
+      ansible.builtin.stat:
+        path: "~/.local/share/fonts/MesloLGS-NF"
+      register: font_dir
+
+    - name: Create fonts directory
+      ansible.builtin.file:
+        path: "~/.local/share/fonts/MesloLGS-NF"
+        state: directory
+        mode: '0755'
+      when: not font_dir.stat.exists
+      register: dir_created
+
+    - name: Download and install fonts
+      ansible.builtin.get_url:
+        url: "{{ item }}"
+        dest: "~/.local/share/fonts/MesloLGS-NF/"
+      with_items:
+        - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf
+        - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf
+        - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf
+        - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf
+      when: dir_created is changed
+      register: fonts_downloaded
+
+    - name: Rebuild font cache
+      ansible.builtin.shell:
+        cmd: fc-cache -f -v
+      when: fonts_downloaded is changed
+      register: font_cache_rebuilt
+
+    - name: Print message to hit hotkeys
+      ansible.builtin.debug:
+        msg: "Now hit mod+shift+c"
+      when: font_cache_rebuilt is changed
+
