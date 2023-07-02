@@ -69,8 +69,8 @@
       when: fonts_downloaded is changed
       register: font_cache_rebuilt
 
-    - name: Print message to hit hotkeys
-      ansible.builtin.debug:
-        msg: "Now logout and log back in"
-      when: font_cache_rebuilt is changed
+    - name: Exit Sway
+      shell: "DISPLAY=:0 swaymsg exit"
+      become: yes
+      become_user: "{{ lookup('env','USER') }}"
 
