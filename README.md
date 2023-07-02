@@ -1,6 +1,6 @@
 ![Made for Linux](https://img.shields.io/badge/-Made%20for%20Linux-black?logo=linux) ![Ansible Playbook](https://img.shields.io/badge/-Ansible%20Playbook-blue?logo=ansible)
 
-# Local System Setup and Customisation with Ansible 🛠️
+# System Setup and Customisation with Ansible 🛠️
 
 This Ansible playbook is designed for automating the configuration of a local system. It performs a series of tasks including adding the Flathub repository, installing Google Chrome and Tidal via Flatpak, and setting the system's timezone, amongst others. Please ensure you have Ansible installed before proceeding.
 
