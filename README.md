@@ -1,6 +1,8 @@
-# My Ansible Playbook README.md
+![Made for Linux](https://img.shields.io/badge/Made%20for-Linux-green) ![Ansible Playbook](https://img.shields.io/badge/Ansible-Playbook-blue)
 
-This Ansible playbook is designed for automating the configuration of a local system. It performs a series of tasks including adding the Flathub repository, installing Google Chrome and Tidal via Flatpak, and setting the system's timezone. Please ensure you have Ansible installed before proceeding.
+# System Setup and Customisation with Ansible 🛠️
+
+This Ansible playbook is designed for automating the configuration of a local system. It performs a series of tasks including adding the Flathub repository, installing Google Chrome and Tidal via Flatpak, and setting the system's timezone, amongst others. Please ensure you have Ansible installed before proceeding.
 
 ## What This Playbook Does
 
@@ -12,9 +14,19 @@ This playbook automates the following tasks on the local system:
 
 3. **Install Tidal**: Installs the Tidal music streaming application from the Flathub repository via Flatpak.
 
-4. **Set Timezone**: Configures the system's timezone to Europe/London.
+4. **Install Boxes**: Installs the Boxes VM management application from the Flathub repository via Flatpak.
 
-The tasks are executed with elevated privileges (become) and are performed as the user `lukecollins`.
+5. **Set Timezone**: Configures the system's timezone to Europe/London.
+
+6. **Clone Powerlevel10k**: Clones the Powerlevel10k repo for terminal customisation.
+
+7. **Change shell to ZSH**: Changes the default shell to ZSH.
+
+8. **Download fonts**: Downloads the fonts required for Powerlevel10k setup.
+
+9. **Log out on completion**: The first time the script is run, it'll log out on completion to enable the shell change.
+
+The tasks which are executed with elevated privileges (become) are performed as the logged in user.
 
 ## Pre-requisites
 
@@ -29,12 +41,12 @@ The tasks are executed with elevated privileges (become) and are performed as th
    `git clone https://github.com/lukejcollins/ansible-playbook.git`
 
 2. **Navigate to the playbook directory**: Use the command below to navigate to the directory containing the playbook:
-   `cd my-ansible-playbook`
+   `cd ansible-playbook`
 
 3. **Review the playbook**: Before running the playbook, it is advisable to review the playbook and make any necessary adjustments to suit your environment.
 
-4. **Run the playbook**: Execute the playbook by running the following command:
-   `ansible-playbook playbook.yml`
+4. **Run the playbook**: Execute the playbook by running the following command (you only need to use the -K parameter for the first run):
+   `ansible-playbook playbook.yml -K`
 
 ## Important Files
 
