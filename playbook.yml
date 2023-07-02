@@ -1,47 +1,67 @@
 ---
-- hosts: localhost
+- name: Install and configure the desktop environment
+  hosts: localhost
   gather_facts: yes
   tasks:
+
+    # Package installations
     - name: Add Flathub repository
-      command: >
-        flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+      flatpak_remote:
+        name: flathub
+        flatpakrepo_url: https://flathub.org/repo/flathub.flatpakrepo
+        state: present
+      tags: packages
 
-    - name: Install Google Chrome
-      command: >
-        flatpak install -y flathub com.google.Chrome
+    - name: Install packages from Flathub
+      flatpak:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - com.google.Chrome
+        - com.mastermindzh.tidal-hifi
+        - org.gnome.Boxes
+      tags: packages
 
-    - name: Install Tidal
-      command: >
-        flatpak install -y flathub com.mastermindzh.tidal-hifi
+    # System configuration
+    - name: Set Timezone to Europe/London
+      timezone:
+        name: Europe/London
+      tags: system
 
-    - name: Set Timezone
-      command: >
-        timedatectl set-timezone Europe/London
-
-    - name: Install Boxes
-      command: >
-        flatpak install -y org.gnome.Boxes
-    
+    # User environment configuration
     - name: Check if powerlevel10k directory exists
       stat:
         path: "~/powerlevel10k"
       register: powerlevel10k_directory
+      tags: user_env
 
-    - name: Install powerlevel10k
-      command: >
-        git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
+    - name: Clone powerlevel10k repository
+      git:
+        repo: "https://github.com/romkatv/powerlevel10k.git"
+        dest: "~/powerlevel10k"
+        depth: 1
       when: not powerlevel10k_directory.stat.exists
+      tags: user_env
 
-    - name: Change default shell of user
+    - name: Check current shell
+      command: echo $SHELL
+      changed_when: False
+      register: current_shell
+      tags: user_env
+
+    - name: Change default shell to Zsh for the user
       become: yes
       user:
         name: "{{ lookup('env','USER') }}"
         shell: /usr/bin/zsh
+      when: current_shell.stdout != '/usr/bin/zsh'
+      tags: user_env
 
     - name: Check if the fonts directory exists
       ansible.builtin.stat:
         path: "~/.local/share/fonts/MesloLGS-NF"
       register: font_dir
+      tags: user_env
 
     - name: Create fonts directory
       ansible.builtin.file:
@@ -50,27 +70,34 @@
         mode: '0755'
       when: not font_dir.stat.exists
       register: dir_created
+      tags: user_env
 
     - name: Download and install fonts
       ansible.builtin.get_url:
         url: "{{ item }}"
         dest: "~/.local/share/fonts/MesloLGS-NF/"
-      with_items:
+      loop:
         - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf
         - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf
         - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf
         - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf
       when: dir_created is changed
       register: fonts_downloaded
+      tags: user_env
 
     - name: Rebuild font cache
       ansible.builtin.shell:
         cmd: fc-cache -f -v
       when: fonts_downloaded is changed
       register: font_cache_rebuilt
+      tags: user_env
 
+    # Sway
     - name: Exit Sway
       shell: "DISPLAY=:0 swaymsg exit"
       become: yes
       become_user: "{{ lookup('env','USER') }}"
+      when: font_cache_rebuilt is changed
+      tags: sway
+...
 
