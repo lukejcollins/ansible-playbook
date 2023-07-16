@@ -1,0 +1,110 @@
+---
+- name: Install and configure the desktop environment
+  hosts: localhost
+  gather_facts: yes
+  tasks:
+
+    # Package installations
+    - name: Add Flathub repository
+      flatpak_remote:
+        name: flathub
+        flatpakrepo_url: https://flathub.org/repo/flathub.flatpakrepo
+        state: present
+      tags: packages
+
+    - name: Install packages from Flathub
+      flatpak:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - com.google.Chrome
+        - com.mastermindzh.tidal-hifi
+        - org.gnome.Boxes
+      tags: packages
+
+    # System configuration
+    - name: Set Timezone to Europe/London
+      timezone:
+        name: Europe/London
+      tags: system
+
+    # User environment configuration
+    - name: Check if powerlevel10k directory exists
+      stat:
+        path: "~/powerlevel10k"
+      register: powerlevel10k_directory
+      tags: user_env
+
+    - name: Clone powerlevel10k repository
+      git:
+        repo: "https://github.com/romkatv/powerlevel10k.git"
+        dest: "~/powerlevel10k"
+        depth: 1
+      when: not powerlevel10k_directory.stat.exists
+      tags: user_env
+
+    - name: Check current shell
+      command: echo $SHELL
+      changed_when: False
+      register: current_shell
+      tags: user_env
+
+    - name: Change default shell to Zsh for the user
+      become: yes
+      user:
+        name: "{{ lookup('env','USER') }}"
+        shell: /usr/bin/zsh
+      when: current_shell.stdout != '/usr/bin/zsh'
+      tags: user_env
+
+    - name: Check if the fonts directory exists
+      ansible.builtin.stat:
+        path: "~/.local/share/fonts/MesloLGS-NF"
+      register: font_dir
+      tags: user_env
+
+    - name: Create fonts directory
+      ansible.builtin.file:
+        path: "~/.local/share/fonts/MesloLGS-NF"
+        state: directory
+        mode: '0755'
+      when: not font_dir.stat.exists
+      register: dir_created
+      tags: user_env
+
+    - name: Download and install fonts
+      ansible.builtin.get_url:
+        url: "{{ item }}"
+        dest: "~/.local/share/fonts/MesloLGS-NF/"
+      loop:
+        - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf
+        - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf
+        - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf
+        - https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf
+      when: dir_created is changed
+      register: fonts_downloaded
+      tags: user_env
+
+    - name: Rebuild font cache
+      ansible.builtin.shell:
+        cmd: fc-cache -f -v
+      when: fonts_downloaded is changed
+      register: font_cache_rebuilt
+      tags: user_env
+    
+    # Install Nvidia driver
+    - name: Install Nvidia driver
+      shell: "rpm-ostree install akmod-nvidia"
+      become: yes
+      become_user: "{{ lookup('env','USER') }}"
+      when: font_cache_rebuilt is changed
+      register: nvidia_driver_installed
+      tags: nvidia
+
+    # Reboot system
+    - name: Reboot the system
+      reboot:
+        reboot_timeout: 0
+      when: nvidia_driver_installed
+      tags: reboot
+...
