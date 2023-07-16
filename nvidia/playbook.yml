@@ -26,6 +26,8 @@
     - name: Set Timezone to Europe/London
       timezone:
         name: Europe/London
+      become: yes
+      become_user: root
       tags: system
 
     # User environment configuration
@@ -103,8 +105,7 @@
 
     # Reboot system
     - name: Reboot the system
-      reboot:
-        reboot_timeout: 0
-      when: nvidia_driver_installed
+      command: "systemctl reboot"
+      when: nvidia_driver_installed is changed
       tags: reboot
 ...
