@@ -26,6 +26,8 @@
     - name: Set Timezone to Europe/London
       timezone:
         name: Europe/London
+      become: yes
+      become_user: root
       tags: system
 
     # User environment configuration
@@ -92,12 +94,9 @@
       register: font_cache_rebuilt
       tags: user_env
 
-    # Sway
-    - name: Exit Sway
-      shell: "DISPLAY=:0 swaymsg exit"
-      become: yes
-      become_user: "{{ lookup('env','USER') }}"
+    # Reboot system
+    - name: Reboot the system
+      command: "systemctl reboot"
       when: font_cache_rebuilt is changed
-      tags: sway
+      tags: reboot
 ...
-
