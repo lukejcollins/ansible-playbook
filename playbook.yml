@@ -48,6 +48,54 @@
         dest: ~/.config/nvim/pack/github/start/copilot.vim
       when: not copilot_repo_status.stat.exists
 
+    - name: Check if vim-plug is already installed
+      stat:
+        path: "${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/autoload/plug.vim"
+      register: vim_plug
+
+    - name: Install vim-plug
+      shell: |
+        sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
+               https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+      when: vim_plug.stat.exists == False
+
+    - name: Check if TFLint is installed
+      command: tflint --version
+      register: tflint_version
+      failed_when: false
+      changed_when: false
+
+    - name: Create local bin directory if not exists
+      file:
+        path: "~/.local/bin/"
+        state: directory
+      when: tflint_version.rc != 0
+
+    - name: Download TFLint
+      get_url:
+        url: https://github.com/terraform-linters/tflint/releases/download/v0.47.0/tflint_linux_amd64.zip
+        dest: "~/tflint.zip"
+      when: tflint_version.rc != 0
+
+    - name: Unarchive TFLint
+      unarchive:
+        src: "~/tflint.zip"
+        dest: "~/.local/bin/"
+        remote_src: yes
+      when: tflint_version.rc != 0
+
+    - name: Set permissions for TFLint
+      file:
+        path: "~/.local/bin/tflint"
+        mode: '0755'
+      when: tflint_version.rc != 0
+
+    - name: Clean up zip file
+      file:
+        path: "~/tflint.zip"
+        state: absent
+      when: tflint_version.rc != 0
+
     - name: Check current shell
       command: echo $SHELL
       changed_when: False
