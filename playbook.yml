@@ -4,7 +4,7 @@
   gather_facts: yes
   tasks:
 
-    # Package installations
+    # Flatpak configuration
     - name: Add Flathub repository
       flatpak_remote:
         name: flathub
@@ -22,28 +22,31 @@
         - org.gnome.Boxes
       tags: packages
 
-    # System configuration
-    - name: Set Timezone to Europe/London
-      timezone:
-        name: Europe/London
-      become: yes
-      become_user: root
-      tags: system
-
     # User environment configuration
     - name: Check if powerlevel10k directory exists
       stat:
-        path: "~/powerlevel10k"
+        path: ~/powerlevel10k
       register: powerlevel10k_directory
       tags: user_env
 
     - name: Clone powerlevel10k repository
       git:
-        repo: "https://github.com/romkatv/powerlevel10k.git"
-        dest: "~/powerlevel10k"
+        repo: https://github.com/romkatv/powerlevel10k.git
+        dest: ~/powerlevel10k
         depth: 1
       when: not powerlevel10k_directory.stat.exists
       tags: user_env
+
+    - name: Check if copilot.vim repository is already cloned
+      stat:
+        path: ~/.config/nvim/pack/github/start/copilot.vim
+      register: copilot_repo_status
+
+    - name: Clone copilot.vim repository if not present
+      git:
+        repo: https://github.com/github/copilot.vim
+        dest: ~/.config/nvim/pack/github/start/copilot.vim
+      when: not copilot_repo_status.stat.exists
 
     - name: Check current shell
       command: echo $SHELL
@@ -57,6 +60,7 @@
         name: "{{ lookup('env','USER') }}"
         shell: /usr/bin/zsh
       when: current_shell.stdout != '/usr/bin/zsh'
+      register: shell_changed
       tags: user_env
 
     - name: Check if the fonts directory exists
@@ -94,14 +98,44 @@
       register: font_cache_rebuilt
       tags: user_env
 
-    - name: Clone copilot.vim repository
-      git:
-        repo: https://github.com/github/copilot.vim
-        dest: ~/.config/nvim/pack/github/start/copilot.vim
+    # System configuration
+    - name: Get current timezone
+      command: timedatectl show --property=Timezone --value
+      changed_when: False
+      register: current_timezone
+      tags: system
+
+    - name: Set Timezone to Europe/London
+      timezone:
+        name: Europe/London
+      when: current_timezone.stdout != "Europe/London"
+      become: yes
+      become_user: root
+      tags: system
+
+    - name: Check for Nvidia GPU
+      set_fact:
+        has_nvidia_gpu: "{{ 'nvidia' in item.model | lower }}"
+      loop: "{{ ansible_facts['devices'].values() }}"
+      when: "'nvidia' in item.model | lower"
+      register: gpu_check_results
+
+    - name: Install Nvidia driver
+      shell: "rpm-ostree install akmod-nvidia"
+      become: yes
+      become_user: "{{ lookup('env','USER') }}"
+      when: 
+        - font_cache_rebuilt is changed
+        - gpu_check_results.results | selectattr('ansible_facts.has_nvidia_gpu', 'defined') | list | length > 0
+      register: nvidia_driver_installed
+      tags: nvidia
 
     # Reboot system
     - name: Reboot the system
       command: "systemctl reboot"
-      when: font_cache_rebuilt is changed
+      when: 
+        - font_cache_rebuilt is changed
+        - shell_changed is changed
+        - nvidia_driver_installed is changed
       tags: reboot
 ...
