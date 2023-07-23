@@ -4,7 +4,7 @@
   gather_facts: yes
   tasks:
 
-    # Package installations
+    # Flatpak configuration
     - name: Add Flathub repository
       flatpak_remote:
         name: flathub
@@ -44,6 +44,11 @@
         depth: 1
       when: not powerlevel10k_directory.stat.exists
       tags: user_env
+
+    - name: Clone copilot.vim repository
+      git:
+        repo: https://github.com/github/copilot.vim
+        dest: ~/.config/nvim/pack/github/start/copilot.vim
 
     - name: Check current shell
       command: echo $SHELL
@@ -94,10 +99,22 @@
       register: font_cache_rebuilt
       tags: user_env
 
-    - name: Clone copilot.vim repository
-      git:
-        repo: https://github.com/github/copilot.vim
-        dest: ~/.config/nvim/pack/github/start/copilot.vim
+    - name: Check for Nvidia GPU
+      set_fact:
+        has_nvidia_gpu: "{{ 'nvidia' in item.model | lower }}"
+      loop: "{{ ansible_facts['devices'].values() }}"
+      when: "'nvidia' in item.model | lower"
+      register: gpu_check_results
+
+    - name: Install Nvidia driver
+      shell: "rpm-ostree install akmod-nvidia"
+      become: yes
+      become_user: "{{ lookup('env','USER') }}"
+      when: 
+        - font_cache_rebuilt is changed
+        - gpu_check_results.results | selectattr('ansible_facts.has_nvidia_gpu', 'defined') | list | length > 0
+      register: nvidia_driver_installed
+      tags: nvidia
 
     # Reboot system
     - name: Reboot the system
