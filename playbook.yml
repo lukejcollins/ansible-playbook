@@ -99,9 +99,16 @@
       tags: user_env
 
     # System configuration
+    - name: Get current timezone
+      command: timedatectl show --property=Timezone --value
+      changed_when: False
+      register: current_timezone
+      tags: system
+
     - name: Set Timezone to Europe/London
       timezone:
         name: Europe/London
+      when: current_timezone.stdout != "Europe/London"
       become: yes
       become_user: root
       tags: system
