@@ -96,6 +96,15 @@
         state: absent
       when: tflint_version.rc != 0
 
+    - name: Install pip modules
+      ansible.builtin.pip:
+        name:
+          - pynvim
+          - flake8
+          - pylint
+        state: present
+        executable: pip3
+
     - name: Check current shell
       command: echo $SHELL
       changed_when: False
