@@ -102,6 +102,7 @@
           - pynvim
           - flake8
           - pylint
+          - black
         state: present
         executable: pip3
 
