@@ -96,6 +96,11 @@
         state: absent
       when: tflint_version.rc != 0
 
+    - name: Install shfmt
+      shell: GO111MODULE=on go install mvdan.cc/sh/v3/cmd/shfmt@latest
+      args:
+        executable: /bin/bash
+
     - name: Install pip modules
       ansible.builtin.pip:
         name:
