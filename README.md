@@ -9,14 +9,30 @@ This Ansible playbook is designed for automating the configuration of local syst
 This playbook automates a series of tasks on the local system. Some of them are:
 
 1. **Add Flathub Repository**: Adds the Flathub repository which is a distribution point for Flatpak applications.
-2. **Install Google Chrome, Tidal & Boxes**: Installs the Google Chrome web browser, Tidal music streaming application, and Boxes VM manager from the Flathub repository via Flatpak.
+
+2. **Install Google Chrome, Tidal & Boxes**: Installs the Google Chrome web browser, Tidal music streaming application, and GNOME Boxes virtual machine manager from the Flathub repository via Flatpak.
+
 3. **Set Timezone**: Configures the system's timezone to Europe/London.
-4. **Install Powerlevel10k**: Installs Powerlevel10k if not already installed.
-5. **Change shell to ZSH**: Changes shell to ZSH if not already set to ZSH.
-6. **Install MesloLGS-NF fonts**: Installs these fonts to support the Powerlevel10k theme if not already installed.
-7. **Install Nvidia Drivers**: If the system has an Nvidia GPU, it installs the Nvidia proprietary drivers.
-8. **Install Neovim Plugins**: The playbook also installs some Neovim plugins.
-9. **Reboot**: The system will reboot to accommodate any changes that require logging out/rebooting.
+
+4. **Check and Clone Powerlevel10k and Copilot.vim Repositories**: Checks for the presence of Powerlevel10k and Copilot.vim repositories and clones them if not already present.
+
+5. **Check and Install vim-plug**: Checks for the presence of vim-plug, a plugin manager for Vim, and installs it if not already present.
+
+6. **Install and Configure TFLint**: Checks for TFLint, a Terraform linter, and installs and configures it in the user's local bin directory if not already installed.
+
+7. **Install shfmt**: A shell formatter 'shfmt' is installed using the Go package manager.
+
+8. **Install pip modules**: Installs several Python modules using pip, Python's package installer.
+
+9. **Change Default Shell to Zsh**: Checks the default shell of the current user and changes it to Zsh if it's not already set.
+
+10. **Install MesloLGS-NF fonts**: Checks for the presence of MesloLGS-NF fonts, supporting the Powerlevel10k theme, and installs them if not already present.
+
+11. **Check for Nvidia GPU and Install Nvidia Driver**: Checks for the presence of an Nvidia GPU in the system and installs the proprietary Nvidia drivers if detected.
+
+12. **Install Neovim Plugins**: Installs certain Neovim plugins to enhance the functionality of the Neovim text editor.
+
+13. **Reboot the System**: Reboots the system to accommodate any changes that require it (e.g., font installation, shell change, Nvidia driver installation).
 
 ## Pre-requisites
 
