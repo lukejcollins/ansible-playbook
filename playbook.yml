@@ -18,7 +18,6 @@
         state: present
       loop:
         - com.google.Chrome
-        - com.mastermindzh.tidal-hifi
         - org.gnome.Boxes
       tags: packages
 
@@ -176,20 +175,27 @@
       become_user: root
       tags: system
 
-    - name: Check for Nvidia GPU
+    - name: Check for Nvidia GPU using lspci
+      shell: lspci | grep -i NVIDIA
+      register: lspci_check
+      failed_when: false
+      changed_when: false
+
+    - name: Set has_nvidia_gpu fact based on lspci output
       set_fact:
-        has_nvidia_gpu: "{{ 'nvidia' in item.model | lower }}"
-      loop: "{{ ansible_facts['devices'].values() }}"
-      when: "'nvidia' in item.model | lower"
-      register: gpu_check_results
+        has_nvidia_gpu: "{{ lspci_check.stdout != '' }}"
+
+    - name: Debug lspci_check
+      debug:
+        var: lspci_check.stdout
 
     - name: Install Nvidia driver
       shell: "rpm-ostree install akmod-nvidia"
       become: yes
       become_user: "{{ lookup('env','USER') }}"
       when: 
+        - has_nvidia_gpu
         - font_cache_rebuilt is changed
-        - gpu_check_results.results | selectattr('ansible_facts.has_nvidia_gpu', 'defined') | list | length > 0
       register: nvidia_driver_installed
       tags: nvidia
 
