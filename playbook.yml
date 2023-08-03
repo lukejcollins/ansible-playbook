@@ -20,6 +20,7 @@
         - com.google.Chrome
         - com.mastermindzh.tidal-hifi
         - org.gnome.Boxes
+        - com.visualstudio.code
       tags: packages
 
     # User environment configuration
