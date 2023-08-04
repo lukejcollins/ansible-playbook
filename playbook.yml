@@ -97,6 +97,31 @@
         state: absent
       when: tflint_version.rc != 0
 
+    - name: Check if directory exists
+      stat:
+        path: "{{ ansible_env.HOME }}/bin"
+      register: bin_dir
+
+    - name: Create directory if it does not exist
+      file:
+        path: "{{ ansible_env.HOME }}/bin"
+        state: directory
+        mode: '0755'
+      when: not bin_dir.stat.exists
+
+    - name: Check if hadolint exists
+      command: test -e "{{ ansible_env.HOME }}/bin/hadolint"
+      register: hadolint_exists
+      failed_when: False
+      changed_when: False
+
+    - name: Download and install hadolint
+      get_url:
+        url: https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64
+        dest: "{{ ansible_env.HOME }}/bin/hadolint"
+        mode: '0755'
+      when: hadolint_exists.rc != 0
+
     - name: Install shfmt
       shell: GO111MODULE=on go install mvdan.cc/sh/v3/cmd/shfmt@latest
       args:
